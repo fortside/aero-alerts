@@ -1,0 +1,58 @@
+services:
+  aero-alerts:
+    image: aero-alerts:latest
+    container_name: aero-alerts
+    restart: always
+    volumes:
+      - aerodata:/data
+    environment:
+      - LOG_LEVEL=INFO
+      - ADSB_HISTORY_ENABLED=true
+      - POSTGRES_ENABLED=true
+      - POSTGRES_SERVER=aero_db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=aero-alerts
+      - POSTGRES_USER=aero-user
+      - POSTGRES_PASSWORD=aero-pass
+      - ADSB_SAVE_FOLDER=/data
+      - LIVE_DATA_URL=http://adsbexchange.local/tar1090/data/aircraft.json
+      - MY_LAT=0
+      - MY_LON=0
+      - AIRSPACE_RADIUS_KM=10
+      - RECORD_RADIUS_KM=100
+      - SLEEP_TIME=10
+      - AIRCRAFT_DEBOUNCE=3600
+      - AEROAPI_LIMIT=10
+      - AEROAPI_KEY=abc123
+      - BSKY_POST_ENABLED=true
+      - BSKY_ACCOUNT=myaccount.bsky.social
+      - BSKY_APP_PASS=abc123
+      - BSKY_POST_LAG=1800
+      - AZ_BACKUP_ENABLED=true
+      - AZ_STORAGE_ACCOUNT_URL=https://mystorageaccount.blob.core.windows.net
+      - AZ_STORAGE_ACCOUNT_KEY=abc123
+      - AZ_CONTAINER_NAME=aeroalertsfeed
+      - AZ_CONTAINER_FOLDER=Pending/
+    networks:
+      - aero-network
+    depends_on:
+      - aero_db
+  aero_db:
+    image: postgres:16-alpine
+    container_name: aero_db
+    restart: always
+    environment:
+      - POSTGRES_USER=aero-user
+      - POSTGRES_PASSWORD=aero-pass
+      - POSTGRES_DB=aero-alerts
+    ports:
+      - "5432:5432"
+    volumes:
+      - aerodb:/var/lib/postgresql/data
+    networks:
+      - aero-network
+volumes:
+  aerodata:
+  aerodb:
+networks:
+  aero-network:
